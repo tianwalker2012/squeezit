@@ -9,9 +9,7 @@
 #import "EZTimeSettingController.h"
 #import "DragableView.h"
 #import "EZButton.h"
-
-#define HEIGHT 1056
-#define UNIT_HEIGHT 44
+#import "Constants.h"
 
 @implementation EZTimeSettingController
 
@@ -59,16 +57,24 @@
     //scrollView.contentSize = CGSizeMake(, );
 }
 
+// The purpose of this functionality is to make the stop are really get call back. 
+- (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
+{
+    //NSLog(@"Stop get called, threadid:%i, callback: %@", (int)[NSThread currentThread], [NSThread callStackSymbols]);
+}
 
 - (void) buttonTapped
 {
     //scrollView.scrollIndicatorInsets
-    NSLog(@"Button clicked, move the offset");
+    NSLog(@"Button clicked, move the offset, thread id:%i",(int)[NSThread currentThread]);
     
     [UIView beginAnimations:@"Scroll" context:nil];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
     [UIView setAnimationDuration:0.5];
     scrollView.contentOffset = CGPointMake(scrollView.contentOffset.x, scrollView.contentOffset.y+20);
     [UIView commitAnimations];
+     
 
 }
 

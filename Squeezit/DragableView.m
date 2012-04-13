@@ -7,6 +7,7 @@
 //
 
 #import "DragableView.h"
+#import "Constants.h"
 
 @implementation DragableView
 
@@ -15,6 +16,8 @@
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
+        animationGoing = false;
+        
     }
     return self;
 }
@@ -37,6 +40,37 @@
     return scroll.contentOffset;
 }
 
+- (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
+{
+    NSLog(@"Animation did stop, callstack:%@",[NSThread callStackSymbols]);
+    animationGoing = false;
+    if(moveUp){
+        [self relocateSelf:self.superview shifted:-1];
+    }else{
+        [self relocateSelf:self.superview shifted:MAXFLOAT];
+    }
+}
+
+- (void) scrollTo:(UIScrollView*)view offset:(CGPoint)offset animated:(BOOL)animated
+{
+    NSLog(@"ScrollTo get called, offset:%@",NSStringFromCGPoint(offset));
+    if(animationGoing){
+        NSLog(@"Animation are going, do nothing");
+        return;
+    }
+    animationGoing = true;
+    if(animated){
+        [UIView beginAnimations:@"scroll" context:nil];
+        [UIView setAnimationDelegate:self];
+        [UIView setAnimationTransition:UIViewAnimationTransitionFlipFromRight forView:self cache:NO];
+        [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+        [UIView setAnimationDuration:2];
+        view.contentOffset = offset;
+        [UIView commitAnimations];
+    }else{
+        view.contentOffset = offset;
+    }
+}
 // The purpose of this functionality is to shift the contentoffset accordingly
 // So that the content will move up or down at the scroll view 
 - (void) shiftContentOffset:(UIView*)superView shiftedY:(CGFloat)shiftedY
@@ -48,23 +82,54 @@
     
     NSLog(@"start shifting");
     UIScrollView* scroll = (UIScrollView*)superView;
-    if(shiftedY < 0){
-        CGPoint contentOffset = scroll.contentOffset;
-        CGFloat adjustedY = contentOffset.y + shiftedY;
-        if(adjustedY < 0){
-            adjustedY = 0;
+    CGPoint contentOffset = scroll.contentOffset;
+    CGFloat beginningY = contentOffset.y;
+    CGFloat endingY = contentOffset.y + scroll.frame.size.height;
+    
+    if(shiftedY < beginningY){
+        moveUp = true;
+        if((contentOffset.y-ScrollStep) >= 0.0){
+            [self scrollTo:scroll offset:CGPointMake(contentOffset.x, contentOffset.y-ScrollStep) animated:YES];
+        }else{
+            [self scrollTo:scroll offset:CGPointMake(contentOffset.x, 0.0) animated:YES];
         }
-        [scroll setContentOffset:CGPointMake(contentOffset.x, adjustedY) animated:YES];
-        //shiftedY = 0;
-    }else if(shiftedY+self.frame.size.height > self.superview.bounds.size.height){
-        CGFloat adjustedY = shiftedY+self.frame.size.height - self.superview.bounds.size.height;
-        if((adjustedY + scroll.contentOffset.y + self.superview.bounds.size.height) > scroll.contentSize.height){
-            adjustedY = scroll.contentSize.height - self.superview.bounds.size.height;
+
+    }else if(shiftedY+self.frame.size.height > endingY){
+        moveUp = false;
+        CGFloat limit = HEIGHT-scroll.frame.size.height;
+        if((contentOffset.y+ScrollStep) <= limit){
+            [self scrollTo:scroll offset:CGPointMake(contentOffset.x, contentOffset.y+ScrollStep) animated:YES];
+        }else {
+            [self scrollTo:scroll offset:CGPointMake(contentOffset.x, limit) animated:YES];
         }
-        NSLog(@"AdjustedY: %fl, original contentoffset: %fl", shiftedY, scroll.contentOffset.y);
-        [scroll setContentOffset:CGPointMake(scroll.contentOffset.x, adjustedY) animated:YES];
-        //shiftedY = self.superview.bounds.size.height - self.frame.size.height;
+        
     }
+}
+
+- (void) relocateSelf:(UIView*)superView shifted:(CGFloat)shiftedY
+{
+    CGPoint curPos = self.frame.origin;
+    //If our superView is not scroll view than noraml way to treat it is ok for us.
+    if(![superView isKindOfClass:[UIScrollView class]]){
+        if(shiftedY < 0){
+            shiftedY = 0;
+        }else if(shiftedY+self.frame.size.height > self.superview.bounds.size.height){
+            shiftedY = self.superview.bounds.size.height - self.frame.size.height;
+        }
+        self.frame = CGRectMake(curPos.x, shiftedY, self.frame.size.width, self.frame.size.height);
+        return;
+    }
+    UIScrollView* scroll = (UIScrollView*)superView;
+    CGPoint contentOffset = scroll.contentOffset;
+    CGFloat beginningY = contentOffset.y;
+    CGFloat endingY = contentOffset.y + scroll.frame.size.height;
+    if(shiftedY < beginningY){
+        shiftedY = beginningY;
+    }else if(shiftedY+self.frame.size.height > endingY){
+        shiftedY = endingY - self.frame.size.height;
+    }
+    self.frame = CGRectMake(curPos.x, shiftedY, self.frame.size.width, self.frame.size.height);
+
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -85,20 +150,15 @@
     float deltaY = moved.y - prevTouchPoint.y;
     float shiftedY = curPos.y + deltaY;
     [self shiftContentOffset:self.superview shiftedY:shiftedY];
-    if(shiftedY < 0){
-        shiftedY = 0;
-    }else if(shiftedY+self.frame.size.height > self.superview.bounds.size.height){
-        shiftedY = self.superview.bounds.size.height - self.frame.size.height;
-    }
-    self.frame = CGRectMake(curPos.x, shiftedY, self.frame.size.width, self.frame.size.height);
+    [self relocateSelf:self.superview shifted:shiftedY];
     prevTouchPoint = moved;
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     NSLog(@"Touch ended");
-    [self setScroll:self.superview enabled:YES];
     [self touchesMoved:touches withEvent:event];
+    [self setScroll:self.superview enabled:YES];
     
 }
 

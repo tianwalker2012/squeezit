@@ -12,6 +12,9 @@
 {
     CGRect originalFrame;
     CGPoint prevTouchPoint;
+    BOOL animationGoing;
+    BOOL moveUp;
 }
 
+- (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
 @end

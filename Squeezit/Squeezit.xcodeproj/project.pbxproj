@@ -61,6 +61,7 @@
 		187345AB15378FE500E23CD7 /* EZObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZObject.m; sourceTree = "<group>"; };
 		187345AD1537C7B600E23CD7 /* EZButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZButton.h; sourceTree = "<group>"; };
 		187345AE1537C7B700E23CD7 /* EZButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZButton.m; sourceTree = "<group>"; };
+		187345B11537CF8000E23CD7 /* Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +81,7 @@
 		1824ED211534036400DC3B45 = {
 			isa = PBXGroup;
 			children = (
+				187345B01537CF5D00E23CD7 /* Constants */,
 				1824ED5E1534046900DC3B45 /* TabControllers */,
 				1824ED361534036400DC3B45 /* Squeezit */,
 				1824ED2F1534036400DC3B45 /* Frameworks */,
@@ -152,6 +154,14 @@
 				187345AE1537C7B700E23CD7 /* EZButton.m */,
 			);
 			name = TabControllers;
+			sourceTree = "<group>";
+		};
+		187345B01537CF5D00E23CD7 /* Constants */ = {
+			isa = PBXGroup;
+			children = (
+				187345B11537CF8000E23CD7 /* Constants.h */,
+			);
+			name = Constants;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
