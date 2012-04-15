@@ -7,12 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
-@class DragableView;
+@class DragableView, EZBackgroundView;
 
 @interface EZTimeSettingController : UIViewController<UIScrollViewDelegate> 
 {
     UIScrollView* scrollView;
     DragableView* dragView;
+    EZBackgroundView* background;
+    
 }
 
 

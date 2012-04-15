@@ -10,6 +10,9 @@
 #import "DragableView.h"
 #import "EZButton.h"
 #import "Constants.h"
+#import "EZTimeScrollView.h"
+#import "EZBackgroundView.h"
+#import "EZViewUtility.h"
 
 @implementation EZTimeSettingController
 
@@ -23,6 +26,18 @@
         self.tabBarItem.title = @"Setting";
     }
     return self;
+}
+
+// The purpose of this is to detect the scroll movement so that we can start draw the back ground.
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView 
+{
+    NSLog(@"scrollViewDidScroll get called");
+    [scrollView setNeedsDisplay];
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    NSLog(@"ScrollViewWillBeginDragging");
 }
 
 - (void)done
@@ -51,9 +66,6 @@
 - (void) loadView 
 {
     [super loadView];
-    scrollView = [[UIScrollView alloc] initWithFrame:CGRectZero];
-    scrollView.backgroundColor = [UIColor grayColor];
-    [self.view addSubview:scrollView];
     //scrollView.contentSize = CGSizeMake(, );
 }
 
@@ -67,6 +79,7 @@
 {
     //scrollView.scrollIndicatorInsets
     NSLog(@"Button clicked, move the offset, thread id:%i",(int)[NSThread currentThread]);
+    NSLog(@"ScrollView mask change: %@",[EZViewUtility printAutoResizeMask:scrollView]);
     
     [UIView beginAnimations:@"Scroll" context:nil];
     [UIView setAnimationDelegate:self];
@@ -83,11 +96,24 @@
     [super viewDidLoad];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemEdit target:self action:@selector(edit)];
 	// Do any additional setup after loading the view, typically from a nib.
+    NSLog(@"Timesetting view resizing: %@",[EZViewUtility printAutoResizeMask:self.view]);
     DragableView* block1 = [[DragableView alloc] initWithFrame:CGRectMake(0, 0, 50, 50)];
     block1.backgroundColor = [UIColor redColor];
+    scrollView = [[EZTimeScrollView alloc] initWithFrame:CGRectZero];
+    NSLog(@"scrollView resizing:%@",[EZViewUtility printAutoResizeMask:scrollView]);
+    background = [[EZBackgroundView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HEIGHT)];
+    background.backgroundColor = [UIColor whiteColor];
+    NSLog(@"background setting:%@",[EZViewUtility printAutoResizeMask:background]);
+    EZBackgroundView* tmp = [[EZBackgroundView alloc] initWithFrame:CGRectZero];
+    NSLog(@"Check if any magic done by CGRectZero resizeingMask:%@",[EZViewUtility printAutoResizeMask:tmp]);
+    [scrollView addSubview:background];
+    [self.view addSubview:scrollView];
     
+    //scrollView.backgroundColor = [UIColor grayColor];
+    //scrollView.delegate = self;
+    [self.view addSubview:scrollView];
     [scrollView addSubview:block1];
-    scrollView.delegate = self;
+    //scrollView.delegate = self;
     
     DragableView* block2 = [[DragableView alloc] initWithFrame:CGRectMake(0, 900, 50, 50)];
     block2.backgroundColor = [UIColor greenColor];
@@ -110,6 +136,7 @@
     NSLog(@"I should have called, bounds:%@",NSStringFromCGRect(self.view.bounds));
     [scrollView setFrame:self.view.bounds];
     scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, HEIGHT);
+    [background setFrame:CGRectMake(background.frame.origin.x, background.frame.origin.y, scrollView.frame.size.width, HEIGHT)];
     
     
     //NSLog(@"");

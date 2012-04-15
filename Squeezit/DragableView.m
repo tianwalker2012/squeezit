@@ -53,9 +53,9 @@
 
 - (void) scrollTo:(UIScrollView*)view offset:(CGPoint)offset animated:(BOOL)animated
 {
-    NSLog(@"ScrollTo get called, offset:%@",NSStringFromCGPoint(offset));
+    //NSLog(@"ScrollTo get called, offset:%@",NSStringFromCGPoint(offset));
     if(animationGoing){
-        NSLog(@"Animation are going, do nothing");
+        //NSLog(@"Animation are going, do nothing");
         return;
     }
     animationGoing = true;

@@ -27,6 +27,11 @@
 		187345A915370A6700E23CD7 /* DragableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345A815370A6700E23CD7 /* DragableView.m */; };
 		187345AC15378FE500E23CD7 /* EZObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345AB15378FE500E23CD7 /* EZObject.m */; };
 		187345AF1537C7B700E23CD7 /* EZButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345AE1537C7B700E23CD7 /* EZButton.m */; };
+		187345C415381EBF00E23CD7 /* EZTimeScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345C315381EBF00E23CD7 /* EZTimeScrollView.m */; };
+		187345C7153823A400E23CD7 /* EZBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345C6153823A400E23CD7 /* EZBackgroundView.m */; };
+		187345CA1538295E00E23CD7 /* EZTimeInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345C91538295E00E23CD7 /* EZTimeInfo.m */; };
+		18EA41FD153A9C2600CF9F6E /* EZViewUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 18EA41FC153A9C2600CF9F6E /* EZViewUtility.m */; };
+		18EA4200153ADFC000CF9F6E /* Squeezit.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 18EA41FF153ADFC000CF9F6E /* Squeezit.bundle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +67,15 @@
 		187345AD1537C7B600E23CD7 /* EZButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZButton.h; sourceTree = "<group>"; };
 		187345AE1537C7B700E23CD7 /* EZButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZButton.m; sourceTree = "<group>"; };
 		187345B11537CF8000E23CD7 /* Constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Constants.h; sourceTree = "<group>"; };
+		187345C215381EBF00E23CD7 /* EZTimeScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZTimeScrollView.h; sourceTree = "<group>"; };
+		187345C315381EBF00E23CD7 /* EZTimeScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZTimeScrollView.m; sourceTree = "<group>"; };
+		187345C5153823A400E23CD7 /* EZBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZBackgroundView.h; sourceTree = "<group>"; };
+		187345C6153823A400E23CD7 /* EZBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZBackgroundView.m; sourceTree = "<group>"; };
+		187345C81538295E00E23CD7 /* EZTimeInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZTimeInfo.h; sourceTree = "<group>"; };
+		187345C91538295E00E23CD7 /* EZTimeInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZTimeInfo.m; sourceTree = "<group>"; };
+		18EA41FB153A9C2600CF9F6E /* EZViewUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZViewUtility.h; sourceTree = "<group>"; };
+		18EA41FC153A9C2600CF9F6E /* EZViewUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZViewUtility.m; sourceTree = "<group>"; };
+		18EA41FF153ADFC000CF9F6E /* Squeezit.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = Squeezit.bundle; path = ../Squeezit.bundle; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +95,9 @@
 		1824ED211534036400DC3B45 = {
 			isa = PBXGroup;
 			children = (
+				18EA41FE153ADD3600CF9F6E /* Resources */,
+				18EA41F9153A9BF300CF9F6E /* Utility */,
+				187345C015381E7F00E23CD7 /* CustomizeView */,
 				187345B01537CF5D00E23CD7 /* Constants */,
 				1824ED5E1534046900DC3B45 /* TabControllers */,
 				1824ED361534036400DC3B45 /* Squeezit */,
@@ -164,6 +181,36 @@
 			name = Constants;
 			sourceTree = "<group>";
 		};
+		187345C015381E7F00E23CD7 /* CustomizeView */ = {
+			isa = PBXGroup;
+			children = (
+				187345C215381EBF00E23CD7 /* EZTimeScrollView.h */,
+				187345C315381EBF00E23CD7 /* EZTimeScrollView.m */,
+				187345C5153823A400E23CD7 /* EZBackgroundView.h */,
+				187345C6153823A400E23CD7 /* EZBackgroundView.m */,
+				187345C81538295E00E23CD7 /* EZTimeInfo.h */,
+				187345C91538295E00E23CD7 /* EZTimeInfo.m */,
+			);
+			name = CustomizeView;
+			sourceTree = "<group>";
+		};
+		18EA41F9153A9BF300CF9F6E /* Utility */ = {
+			isa = PBXGroup;
+			children = (
+				18EA41FB153A9C2600CF9F6E /* EZViewUtility.h */,
+				18EA41FC153A9C2600CF9F6E /* EZViewUtility.m */,
+			);
+			name = Utility;
+			sourceTree = "<group>";
+		};
+		18EA41FE153ADD3600CF9F6E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				18EA41FF153ADFC000CF9F6E /* Squeezit.bundle */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -223,6 +270,7 @@
 				1824ED521534036400DC3B45 /* EZFirstViewController.xib in Resources */,
 				1824ED551534036400DC3B45 /* EZSecondViewController.xib in Resources */,
 				1824ED601534074C00DC3B45 /* TimeSetting.xib in Resources */,
+				18EA4200153ADFC000CF9F6E /* Squeezit.bundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,6 +290,10 @@
 				187345A915370A6700E23CD7 /* DragableView.m in Sources */,
 				187345AC15378FE500E23CD7 /* EZObject.m in Sources */,
 				187345AF1537C7B700E23CD7 /* EZButton.m in Sources */,
+				187345C415381EBF00E23CD7 /* EZTimeScrollView.m in Sources */,
+				187345C7153823A400E23CD7 /* EZBackgroundView.m in Sources */,
+				187345CA1538295E00E23CD7 /* EZTimeInfo.m in Sources */,
+				18EA41FD153A9C2600CF9F6E /* EZViewUtility.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

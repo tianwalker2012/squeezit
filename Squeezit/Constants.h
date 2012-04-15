@@ -10,7 +10,9 @@
 #define Squeezit_Constants_h
 
 #define ScrollStep 22
-#define HEIGHT 1056
+#define HEIGHT 1078
 #define UNIT_HEIGHT 44
+#define PAGE_HEAD 11;
+#define PAGE_BOTTOM 11;
 
 #endif
