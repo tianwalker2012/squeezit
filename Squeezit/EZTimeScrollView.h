@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface EZTimeScrollView : UIScrollView<UIScrollViewDelegate>
+@interface EZTimeScrollView : UIScrollView
 
 @end

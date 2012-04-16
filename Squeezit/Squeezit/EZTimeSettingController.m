@@ -13,6 +13,7 @@
 #import "EZTimeScrollView.h"
 #import "EZBackgroundView.h"
 #import "EZViewUtility.h"
+#import "EZGlobalLocalize.h"
 
 @implementation EZTimeSettingController
 
@@ -21,23 +22,11 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
-        self.title = NSLocalizedString(@"Time Setting", @"Time Setting");
+        self.title = EZLocalizedString(@"Time Setting", @"Time Setting");
         self.tabBarItem = [[UITabBarItem alloc]initWithTabBarSystemItem:UITabBarSystemItemMostRecent tag:1];
         self.tabBarItem.title = @"Setting";
     }
     return self;
-}
-
-// The purpose of this is to detect the scroll movement so that we can start draw the back ground.
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView 
-{
-    NSLog(@"scrollViewDidScroll get called");
-    [scrollView setNeedsDisplay];
-}
-
-- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
-{
-    NSLog(@"ScrollViewWillBeginDragging");
 }
 
 - (void)done
@@ -102,6 +91,7 @@
     scrollView = [[EZTimeScrollView alloc] initWithFrame:CGRectZero];
     NSLog(@"scrollView resizing:%@",[EZViewUtility printAutoResizeMask:scrollView]);
     background = [[EZBackgroundView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HEIGHT)];
+    background.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     background.backgroundColor = [UIColor whiteColor];
     NSLog(@"background setting:%@",[EZViewUtility printAutoResizeMask:background]);
     EZBackgroundView* tmp = [[EZBackgroundView alloc] initWithFrame:CGRectZero];
@@ -112,9 +102,15 @@
     //scrollView.backgroundColor = [UIColor grayColor];
     //scrollView.delegate = self;
     [self.view addSubview:scrollView];
-    [scrollView addSubview:block1];
+    //[scrollView addSubview:block1];
+    [scrollView setFrame:self.view.bounds];
+    scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    NSLog(@"Before settting, the scrollView's autoResizeSubviews is:%@",scrollView.autoresizesSubviews?@"YES":@"NO");
+    scrollView.autoresizesSubviews = true;
+    scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, HEIGHT);
     //scrollView.delegate = self;
     
+    /**  Keep this one commit, it is for test purpose
     DragableView* block2 = [[DragableView alloc] initWithFrame:CGRectMake(0, 900, 50, 50)];
     block2.backgroundColor = [UIColor greenColor];
     EZButton* eb = [[EZButton alloc] initWithFrame:CGRectMake(0, 200, 44, 44)];
@@ -123,7 +119,7 @@
     [scrollView addSubview:eb];
     
     [scrollView addSubview:block2];
-    
+    **/
 }
 
 - (void) viewDidLayoutSubviews
@@ -134,10 +130,8 @@
 - (void) viewWillAppear:(BOOL)animated 
 {
     NSLog(@"I should have called, bounds:%@",NSStringFromCGRect(self.view.bounds));
-    [scrollView setFrame:self.view.bounds];
-    scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, HEIGHT);
-    [background setFrame:CGRectMake(background.frame.origin.x, background.frame.origin.y, scrollView.frame.size.width, HEIGHT)];
-    
+    //[scrollView setFrame:self.view.bounds];
+    //scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, HEIGHT);
     
     //NSLog(@"");
 }

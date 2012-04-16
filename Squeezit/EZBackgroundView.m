@@ -26,6 +26,31 @@ static NSString* timeText[] = {@"Morning",@"Morning"};
 }
 
 
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    NSLog(@"Touch Began");
+    [touchHandler touchesBegan:touches withEvent:event];
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    NSLog(@"Touch Moved");
+    [touchHandler touchesMoved:touches withEvent:event];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    NSLog(@"Touch Ended");
+    [touchHandler touchesEnded:touches withEvent:event];
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    NSLog(@"Touch Cancelled");
+    [touchHandler touchesCancelled:touches withEvent:event];
+    
+}
+
 //  According to rect and current contentOffset generate a list of Lines which you can draw
 - (NSArray*) getTimeInfo:(CGRect)rect
 {
