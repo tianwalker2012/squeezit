@@ -14,6 +14,9 @@
     CGPoint prevTouchPoint;
     BOOL animationGoing;
     BOOL moveUp;
+    BOOL dragModel;
+    UIView* topCycle;
+    UIView* bottomCycle;
 }
 
 - (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;

@@ -43,4 +43,21 @@
     return resStr;
 }
 
++ (UIColor*) colorFromHex:(NSString*)colorStr
+{
+    CGFloat red = 1.0f;
+    CGFloat green = 1.0f;
+    CGFloat blue = 1.0f;
+    if(colorStr.length == 3){
+        
+        
+    }else if(colorStr.length == 6){
+        
+    }else{
+        NSLog(@"Wrong length, %@, return white color",colorStr);
+        //return [UIColor whiteColor];
+    }
+    return [UIColor colorWithRed:red green:green blue:blue alpha:1.0f];
+}
+
 @end

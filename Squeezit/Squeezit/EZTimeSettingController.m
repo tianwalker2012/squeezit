@@ -29,6 +29,52 @@
     return self;
 }
 
+- (void) createTimeBoxStopped:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
+{
+    //NSLog(@"Stop get called, threadid:%i, callback: %@", (int)[NSThread currentThread], [NSThread callStackSymbols]);
+    NSLog(@"I will jump to another controller later");
+}
+
+// Create the TimeSpan box at the position and jump to the setting controller
+- (void) createTimeSpanAndJump:(int)touchedTime positionY:(CGFloat)y
+{
+    NSLog(@"toucheTime:%d, position:%fl",touchedTime,y);
+    DragableView* dragableView = [[DragableView alloc] initWithFrame:CGRectMake(TIME_BEGIN, y, self.view.bounds.size.width-TIME_BEGIN, UNIT_HEIGHT)];
+    dragableView.backgroundColor = [UIColor colorWithRed:0.8 green:0.5 blue:0.5 alpha:1];
+    dragableView.alpha = 0.0;
+    dragableView.autoresizingMask = UIViewAutoresizingFlexibleWidth; 
+    [scrollView addSubview:dragableView];
+    
+    [UIView beginAnimations:@"generateView" context:nil];
+    //[UIView setAnimationTransition:UIViewAnimationTransitionFlipFromRight forView:dragableView cache:NO];
+    [UIView setAnimationDuration:0.4];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDidStopSelector:@selector(createTimeBoxStopped:finished:context:)];
+    dragableView.alpha = 0.6;
+    [UIView commitAnimations];
+}
+
+// Once I get touch ended event
+// What I should do? 
+// I assume the touch event on the existing event will not show on me.
+// How many cases the touch end will be on me? 
+// One cases, that is the user want to create 
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    NSLog(@"Touch end count: %d",[touches count]);
+    UITouch* touch = [touches anyObject];
+    CGPoint touchPoint = [touch locationInView:touch.view];
+    CGFloat touchY = touchPoint.y - PAGE_HEAD;
+    int touchedTime = touchY/UNIT_HEIGHT;
+    CGFloat y = PAGE_HEAD + touchedTime*UNIT_HEIGHT;
+    [self createTimeSpanAndJump:touchedTime positionY:y];
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    NSLog(@"TimeSetting, touch cancelled");
+}
+
 - (void)done
 {
 
@@ -93,35 +139,21 @@
     background = [[EZBackgroundView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HEIGHT)];
     background.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     background.backgroundColor = [UIColor whiteColor];
+    background.touchHandler = self;
     NSLog(@"background setting:%@",[EZViewUtility printAutoResizeMask:background]);
-    EZBackgroundView* tmp = [[EZBackgroundView alloc] initWithFrame:CGRectZero];
-    NSLog(@"Check if any magic done by CGRectZero resizeingMask:%@",[EZViewUtility printAutoResizeMask:tmp]);
+  
     [scrollView addSubview:background];
     [self.view addSubview:scrollView];
-    
-    //scrollView.backgroundColor = [UIColor grayColor];
-    //scrollView.delegate = self;
-    [self.view addSubview:scrollView];
-    //[scrollView addSubview:block1];
+
     [scrollView setFrame:self.view.bounds];
     scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     NSLog(@"Before settting, the scrollView's autoResizeSubviews is:%@",scrollView.autoresizesSubviews?@"YES":@"NO");
     scrollView.autoresizesSubviews = true;
     scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, HEIGHT);
-    //scrollView.delegate = self;
-    
-    /**  Keep this one commit, it is for test purpose
-    DragableView* block2 = [[DragableView alloc] initWithFrame:CGRectMake(0, 900, 50, 50)];
-    block2.backgroundColor = [UIColor greenColor];
-    EZButton* eb = [[EZButton alloc] initWithFrame:CGRectMake(0, 200, 44, 44)];
-    eb.backgroundColor = [UIColor redColor];
-    [eb addTapTarget:self selector:@selector(buttonTapped)];
-    [scrollView addSubview:eb];
-    
-    [scrollView addSubview:block2];
-    **/
 }
 
+// When do I need to do something in this?
+// When you need to rearrange the layout instead of simply stretching it.
 - (void) viewDidLayoutSubviews
 {
     [self viewWillAppear:YES];
@@ -130,10 +162,7 @@
 - (void) viewWillAppear:(BOOL)animated 
 {
     NSLog(@"I should have called, bounds:%@",NSStringFromCGRect(self.view.bounds));
-    //[scrollView setFrame:self.view.bounds];
-    //scrollView.contentSize = CGSizeMake(scrollView.frame.size.width, HEIGHT);
-    
-    //NSLog(@"");
+
 }
 
 

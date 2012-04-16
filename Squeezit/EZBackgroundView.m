@@ -12,6 +12,7 @@
 #import "EZGlobalLocalize.h"
 
 @implementation EZBackgroundView
+@synthesize touchHandler;
 
 static NSString* timeText[] = {@"Morning",@"Morning"};
 
@@ -29,7 +30,7 @@ static NSString* timeText[] = {@"Morning",@"Morning"};
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     NSLog(@"Touch Began");
-    [touchHandler touchesBegan:touches withEvent:event];
+   [touchHandler touchesBegan:touches withEvent:event];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -75,10 +76,10 @@ static NSString* timeText[] = {@"Morning",@"Morning"};
             NSString* keyStr = [NSString stringWithFormat:EZLocalizedString(@"%dclock",@""),time];
             NSString* timeStr = EZLocalizedString(keyStr,@"Time");
             NSLog(@"Time:%@, morningSign:%@",timeStr, morningSign);
-            EZTimeInfo* info = [[EZTimeInfo alloc] initWith:morningSign time:timeStr start:CGPointMake(100, innerOffset) end:CGPointMake(rect.size.width,innerOffset) isDotted:NO];
+            EZTimeInfo* info = [[EZTimeInfo alloc] initWith:morningSign time:timeStr start:CGPointMake(TIME_BEGIN, innerOffset) end:CGPointMake(rect.size.width,innerOffset) isDotted:NO];
             [res addObject:info];
         }else{
-            EZTimeInfo* info = [[EZTimeInfo alloc] initWith:nil time:nil start:CGPointMake(100, innerOffset) end:CGPointMake(rect.size.width,innerOffset) isDotted:YES];
+            EZTimeInfo* info = [[EZTimeInfo alloc] initWith:nil time:nil start:CGPointMake(TIME_BEGIN, innerOffset) end:CGPointMake(rect.size.width,innerOffset) isDotted:YES];
             [res addObject:info];
         }
         innerOffset += ScrollStep;

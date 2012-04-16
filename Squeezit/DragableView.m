@@ -9,6 +9,25 @@
 #import "DragableView.h"
 #import "Constants.h"
 
+@interface CycleView : UIView
+
+@end
+
+@implementation CycleView
+
+- (void) drawRect:(CGRect)rect
+{
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetLineWidth(context, CycleStroke);
+    CGContextSetRGBStrokeColor(context, 0.8, 0.2, 0.2, 1);
+    CGContextSetRGBFillColor(context, 0.7, 0.4, 0.4, 1);
+    CGContextAddEllipseInRect(context, CGRectInset(rect, CycleStroke, CycleStroke));
+    CGContextFillEllipseInRect(context, CGRectInset(rect, CycleStroke*2, CycleStroke*2));
+    CGContextStrokePath(context);
+    NSLog(@"Draw a cycle");
+}
+@end
+
 @implementation DragableView
 
 - (id)initWithFrame:(CGRect)frame
@@ -17,6 +36,7 @@
     if (self) {
         // Initialization code
         animationGoing = false;
+        dragModel = false;
         
     }
     return self;
@@ -62,9 +82,9 @@
     if(animated){
         [UIView beginAnimations:@"scroll" context:nil];
         [UIView setAnimationDelegate:self];
-        [UIView setAnimationTransition:UIViewAnimationTransitionFlipFromRight forView:self cache:NO];
+        //[UIView setAnimationTransition:UIViewAnimationTransitionFlipFromRight forView:self cache:NO];
         [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-        [UIView setAnimationDuration:2];
+        [UIView setAnimationDuration:0.3];
         view.contentOffset = offset;
         [UIView commitAnimations];
     }else{
@@ -132,9 +152,43 @@
 
 }
 
+- (void) addStretchPoint
+{
+    //CGRect bounds = self.bounds;
+    topCycle = [[CycleView alloc] initWithFrame:CGRectMake(0, 0, DragCycleSize, DragCycleSize)];
+    bottomCycle = [[CycleView alloc] initWithFrame:CGRectMake(0, 0, DragCycleSize, DragCycleSize)];
+    topCycle.center = CGPointMake(self.bounds.origin.x+(0.8*self.bounds.size.width), self.bounds.origin.y);
+    bottomCycle.center = CGPointMake(self.bounds.origin.x+(0.2*self.bounds.size.width), self.bounds.origin.y+self.bounds.size.height);
+    topCycle.backgroundColor = [UIColor clearColor];
+    bottomCycle.backgroundColor = [UIColor clearColor];
+    NSLog(@"SelfBounds:%@,topCycle:%@,bottomCycle:%@",NSStringFromCGRect(self.bounds),NSStringFromCGRect(topCycle.frame),NSStringFromCGRect(bottomCycle.frame));
+    [self addSubview:topCycle];
+    [self addSubview:bottomCycle];
+}
+
+- (void) removeStretchPoint
+{
+    
+}
+
+- (void) disableDraggable
+{
+    dragModel = false;
+}
+
+- (void) longPressed
+{
+    dragModel = true;
+    NSLog(@"Long Pressed");
+    [self addStretchPoint];
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     NSLog(@"Touch began");
+    if(!dragModel){
+        [self performSelector:@selector(longPressed) withObject:nil afterDelay:LONG_TOUCH];
+    }
     UITouch* touchPoint = [touches anyObject];
     originalFrame = self.frame;
     prevTouchPoint = [touchPoint locationInView:self.superview];
@@ -142,6 +196,10 @@
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    //Only dragable when in dragModel
+    if(!dragModel){
+        return;
+    }
     NSLog(@"Touch moved");
     [self setScroll:self.superview enabled:NO];
     UITouch* touchPoint = [touches anyObject];
@@ -157,6 +215,10 @@
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     NSLog(@"Touch ended");
+    if(!dragModel){
+        [NSObject cancelPreviousPerformRequestsWithTarget:self];
+        return;
+    }
     [self touchesMoved:touches withEvent:event];
     [self setScroll:self.superview enabled:YES];
     

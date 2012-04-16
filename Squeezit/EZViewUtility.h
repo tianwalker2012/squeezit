@@ -12,4 +12,6 @@
 
 + (NSString*) printAutoResizeMask:(UIView*)view;
 
++ (UIColor*) colorFromHex:(NSString*)colorStr; 
+
 @end
