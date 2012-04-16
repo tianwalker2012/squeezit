@@ -9,6 +9,7 @@
 #import "EZBackgroundView.h"
 #import "Constants.h"
 #import "EZTimeInfo.h"
+#import "EZGlobalLocalize.h"
 
 @implementation EZBackgroundView
 
@@ -38,16 +39,16 @@ static NSString* timeText[] = {@"Morning",@"Morning"};
     while(startBar < 49){
         if((startBar % 2) == 0){
             int time = (49-startBar)/2;
-            NSString* morningSign = NSLocalizedString(@"Morning", @"Morning");
+            NSString* morningSign = EZLocalizedString(@"Morning", @"Morning");
             if(time > 12){
-                morningSign = NSLocalizedString(@"Afternoon", @"Afternoon");
+                morningSign = EZLocalizedString(@"Afternoon", @"Afternoon");
                 time = time - 12;
             }else if(time == 12){
-                morningSign = NSLocalizedString(@"Noon", @"Noon");
+                morningSign = EZLocalizedString(@"Noon", @"Noon");
             }
             
-            NSString* keyStr = [NSString stringWithFormat:@"%iclock",time];
-            NSString* timeStr = NSLocalizedString(keyStr,@"Time");
+            NSString* keyStr = [NSString stringWithFormat:EZLocalizedString(@"%dclock",@""),time];
+            NSString* timeStr = EZLocalizedString(keyStr,@"Time");
             NSLog(@"Time:%@, morningSign:%@",timeStr, morningSign);
             EZTimeInfo* info = [[EZTimeInfo alloc] initWith:morningSign time:timeStr start:CGPointMake(100, innerOffset) end:CGPointMake(rect.size.width,innerOffset) isDotted:NO];
             [res addObject:info];
@@ -91,7 +92,17 @@ static NSString* timeText[] = {@"Morning",@"Morning"};
 {
     //NSLog(@"Draw information, the isDotted is enabled %@", info.isDotted?@"YES":@"NO");
     if(info.isDotted){
+        CGContextSaveGState(context);
         CGContextSetRGBStrokeColor(context, 0.8 , 0.8, 0.8, 1);
+        CGFloat patterns[] = {1,1};
+        CGContextSetLineDash(context, 1, patterns, 2);
+        CGContextSetLineWidth(context, 1);
+        
+        CGContextMoveToPoint(context, info.start.x , info.start.y);
+        CGContextAddLineToPoint(context, info.end.x, info.end.y);
+        CGContextStrokePath(context);
+        CGContextRestoreGState(context);
+        return;
     }else{
         CGContextSetRGBStrokeColor(context, 0.2, 0.2, 0.2, 1);
         [self drawText:context position:CGPointMake(5, info.start.y) text:info.timeStr];
