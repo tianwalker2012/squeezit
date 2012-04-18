@@ -263,6 +263,7 @@
     [self touchesMoved:touches withEvent:event];
     [self putBack];
     [container dropView:self];
+    [container dismissShadow:shadow];
     //[self setScroll:self.superview enabled:YES];
     
 }
@@ -271,6 +272,8 @@
 {
     NSLog(@"Touch cancelled, time to return to where is belonging to");
     self.frame = originalFrame;
+    [shadow removeFromSuperview];
+    [container dismissShadow:shadow];
 }
 /*
 // Only override drawRect: if you perform custom drawing.

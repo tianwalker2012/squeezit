@@ -16,6 +16,8 @@
 
 - (void) moveDetection:(UIView*)draggable;
 
+- (void) dismissShadow:(UIView*)shadow;
+
 @end
 
 @interface DragableView : UIView

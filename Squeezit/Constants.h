@@ -21,6 +21,7 @@
 #define DragCycleSize 44
 #define CycleStroke 6
 #define SCROLL_UNIT 11
-#define SCROLL_DURATION 0.1f
+#define SCROLL_DURATION 0.2f
+#define SCROLL_DURATION_MAX 0.4f
 
 #endif

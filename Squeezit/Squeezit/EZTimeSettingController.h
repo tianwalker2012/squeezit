@@ -17,8 +17,10 @@
 {
     UIScrollView* scrollView;
     DragableView* dragView;
+    UIView* shadowView;
     EZBackgroundView* background;
     DragableView* activeDragableView;
+    BOOL animated;
     
 }
 

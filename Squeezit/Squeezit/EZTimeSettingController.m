@@ -25,47 +25,58 @@
         self.title = EZLocalizedString(@"Time Setting", @"Time Setting");
         self.tabBarItem = [[UITabBarItem alloc]initWithTabBarSystemItem:UITabBarSystemItemMostRecent tag:1];
         self.tabBarItem.title = @"Setting";
+        animated = false;
     }
     return self;
-}
-
-- (void) scrollAnimStopped:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
-{
-    //NSLog(@"Stop get called, threadid:%i, callback: %@", (int)[NSThread currentThread], [NSThread callStackSymbols]);
-    NSLog(@"Scroll stopped, call the move detection again");
-    UIView* draggable = (__bridge UIView*)context;
-    [self moveDetection:draggable];
 }
 
 //Under following circumstance, I assume only the 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
-    
+    NSLog(@"ScrollAnimation completed");
+    if(shadowView){
+        [self moveDetection:shadowView];
+    }
+}
+
+
+// The animation will be stop
+- (void) dismissShadow:(UIView *)shadow
+{
+    shadowView = nil;
 }
 
 - (void) moveDetection:(UIView*)draggable
 {
+    if(animated){
+        NSLog(@"Quit for already animated");
+        return;
+    }
+    //animated = YES;
     UIView* grandPa = scrollView.superview;
     CGRect dragRect = [grandPa convertRect:draggable.frame fromView:draggable.superview];
-    NSLog(@"move dragRect:%@, scrollView:%@",NSStringFromCGRect(dragRect), NSStringFromCGRect(scrollView.frame));
+    
     if(CGRectContainsRect(scrollView.frame, dragRect)){
         NSLog(@"No scroll is need");
         return;
-    }else if(dragRect.origin.y > scrollView.frame.origin.y && (dragRect.origin.y+dragRect.size.height) <  (scrollView.frame.origin.y+scrollView.frame.size.height)){
+    }else if(dragRect.origin.y >= scrollView.frame.origin.y && (dragRect.origin.y+dragRect.size.height) <=  (scrollView.frame.origin.y+scrollView.frame.size.height)){
         NSLog(@"Will scroll horizontally");
     }else{
-        CGRect insetRect = CGRectIntersection(scrollView.frame, dragRect);
+        NSLog(@"move dragRect:%@, scrollView:%@",NSStringFromCGRect(dragRect), NSStringFromCGRect(scrollView.frame));
         //deltaOY = (dragRect.origin.y - insetRect.origin.y)/;
-        CGFloat velocity = (dragRect.size.height - insetRect.size.height)/dragRect.size.height;
+        //Assume the 
+        CGFloat velocity = (scrollView.frame.origin.y - dragRect.origin.y)/dragRect.size.height;
         CGFloat prevOffsetY = scrollView.contentOffset.y;
         CGFloat animDuration = SCROLL_DURATION/velocity;
         CGFloat changeOffsetY = prevOffsetY;
-        if(dragRect.origin.y < insetRect.origin.y){//Will scroll up.
+        if(velocity > 0){//Will scroll up.
             changeOffsetY = prevOffsetY - SCROLL_UNIT;
             if(changeOffsetY < 0.0f){
                 changeOffsetY = 0.0f;
             }
         } else {
+            velocity = (dragRect.origin.y+dragRect.size.height-(scrollView.frame.origin.y+scrollView.frame.size.height))/dragRect.size.height;
+            animDuration = SCROLL_DURATION/velocity;
             changeOffsetY = prevOffsetY + SCROLL_UNIT;
             if((changeOffsetY+scrollView.frame.size.height) > scrollView.contentSize.height){
                 changeOffsetY = scrollView.contentSize.height - scrollView.frame.size.height;
@@ -73,26 +84,30 @@
         }
         
         //Will start scroll animation if the scroll happened.
-        UIView* tmpView = [[UIView alloc] initWithFrame:CGRectMake(20, 20, 44,44)];
-        tmpView.backgroundColor = [UIColor redColor];
-        [self.view.window addSubview:tmpView];
-        //scrollView.delegate = self;
-        
+              
         if(prevOffsetY != changeOffsetY){
+            animated = YES;
+            shadowView = draggable;
+            if(animDuration > SCROLL_DURATION_MAX){
+                animDuration = SCROLL_DURATION_MAX;
+            }
             NSLog(@"AnimationDurition:%fl",animDuration);
-            [UIView beginAnimations:@"Scroll" context:(void*)draggable];
-            [UIView setAnimationDuration:animDuration];
-            [UIView setAnimationDelegate:self];
-            [UIView setAnimationDidStopSelector:@selector(scrollAnimStopped:finished:context:)];
-            scrollView.contentOffset = CGPointMake(scrollView.contentOffset.x, changeOffsetY);
-            tmpView.alpha = 0.2;
-            [UIView commitAnimations];
+            [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x, changeOffsetY) animated:YES];
+            //[self performSelector:@selector(ownScrollAnimationCompleted:) withObject:draggable afterDelay:animDuration];
         } else {
             NSLog(@"Nothing changed, stop calling");
         }
-        ///[scrollView setContentOffset:<#(CGPoint)#> animated:<#(BOOL)#>];
     }
     
+}
+
+- (void)ownScrollAnimationCompleted:(UIView*)draggable
+{
+    NSLog(@"Manual animation control");
+    animated = NO;
+    if(shadowView){
+        [self moveDetection:shadowView];
+    }
 }
 
 - (void) dropView:(UIView*)droped
@@ -223,6 +238,7 @@
     DragableView* block1 = [[DragableView alloc] initWithFrame:CGRectMake(0, 0, 50, 50)];
     block1.backgroundColor = [UIColor redColor];
     scrollView = [[EZTimeScrollView alloc] initWithFrame:CGRectZero];
+    scrollView.delegate = self;
     NSLog(@"scrollView resizing:%@",[EZViewUtility printAutoResizeMask:scrollView]);
     background = [[EZBackgroundView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, HEIGHT)];
     background.autoresizingMask = UIViewAutoresizingFlexibleWidth;
