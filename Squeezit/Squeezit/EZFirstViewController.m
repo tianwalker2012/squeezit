@@ -8,6 +8,40 @@
 
 #import "EZFirstViewController.h"
 
+@interface ReleaseObj : NSObject
+{
+    ReleaseObj* child;
+    NSString* name;
+}
+
+- (id) initWithName:(NSString*)name child:(ReleaseObj*)child;
+
+- (void) setChild:(ReleaseObj*)child;
+
+@end
+
+@implementation ReleaseObj
+
+- (void) setChild:(ReleaseObj *)cd
+{
+    child = cd;
+}
+
+- (id) initWithName:(NSString *)nm  child:(ReleaseObj*)cd
+{
+    self = [super init];
+    name = nm;
+    child = cd;
+    return self;
+}
+
+- (void) dealloc
+{
+    NSLog(@"%@:get dealloc",name);
+}
+
+@end
+
 @interface EZFirstViewController ()
 
 @end
@@ -27,6 +61,14 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    ReleaseObj* parent = [[ReleaseObj alloc] initWithName:@"Parent" child:[[ReleaseObj alloc] initWithName:@"child" child:nil]];
+    ReleaseObj* child2 = [[ReleaseObj alloc] initWithName:@"Child2" child:nil];
+    [parent setChild:child2];
+    NSLog(@"Set child to child2, child supposed to get release");
+    parent = nil;
+    
+    NSLog(@"View did load completed");
+    
 	// Do any additional setup after loading the view, typically from a nib.
 }
 

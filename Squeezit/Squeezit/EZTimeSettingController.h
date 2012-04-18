@@ -8,14 +8,17 @@
 
 #import <UIKit/UIKit.h>
 #import "EZBackgroundView.h"
+#import "DragableView.h"
+
 @class DragableView, EZBackgroundView;
 
 
-@interface EZTimeSettingController : UIViewController<EZTouchHandler>
+@interface EZTimeSettingController : UIViewController<EZTouchHandler,DragContainer,UIScrollViewDelegate>
 {
     UIScrollView* scrollView;
     DragableView* dragView;
     EZBackgroundView* background;
+    DragableView* activeDragableView;
     
 }
 

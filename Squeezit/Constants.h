@@ -16,9 +16,11 @@
 #define PAGE_BOTTOM 11
 #define TIME_BEGIN 50
 
-#define LONG_TOUCH 2
+#define LONG_TOUCH 1
 
 #define DragCycleSize 44
 #define CycleStroke 6
+#define SCROLL_UNIT 11
+#define SCROLL_DURATION 0.1f
 
 #endif

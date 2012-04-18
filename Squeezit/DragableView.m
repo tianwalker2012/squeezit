@@ -29,6 +29,7 @@
 @end
 
 @implementation DragableView
+@synthesize container;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -155,6 +156,7 @@
 - (void) addStretchPoint
 {
     //CGRect bounds = self.bounds;
+    
     topCycle = [[CycleView alloc] initWithFrame:CGRectMake(0, 0, DragCycleSize, DragCycleSize)];
     bottomCycle = [[CycleView alloc] initWithFrame:CGRectMake(0, 0, DragCycleSize, DragCycleSize)];
     topCycle.center = CGPointMake(self.bounds.origin.x+(0.8*self.bounds.size.width), self.bounds.origin.y);
@@ -166,21 +168,53 @@
     [self addSubview:bottomCycle];
 }
 
-- (void) removeStretchPoint
-{
-    
-}
+
 
 - (void) disableDraggable
 {
     dragModel = false;
+    [topCycle removeFromSuperview];
+    [bottomCycle removeFromSuperview];
+}
+
+- (void) addShadow
+{
+    UIWindow* window = self.window;
+    parent = self.superview;
+    oldLocation = self.frame;
+    CGRect converted = [window convertRect:oldLocation fromView:parent];
+    CGRect alterConverted = [parent convertRect:oldLocation toView:window];
+    NSLog(@"Original:%@,Converted:%@, alterConverted:%@",NSStringFromCGRect(oldLocation),NSStringFromCGRect(converted), NSStringFromCGRect(alterConverted));
+    if(!shadow){
+        shadow = [[UIView alloc] initWithFrame:converted];
+        shadow.backgroundColor = [UIColor colorWithRed:0.6 green:0.4 blue:0.4 alpha:0.7];
+    }else{
+        shadow.frame = converted;
+    }
+    //self.frame = converted;
+    [self.window addSubview:shadow];
+    //I guess will have some flash effect, so better prepared a image UIView first. 
+    // do it at the next iteration
 }
 
 - (void) longPressed
 {
     dragModel = true;
     NSLog(@"Long Pressed");
+    [container setDraggableView:self];
     [self addStretchPoint];
+    [self addShadow];
+}
+
+//Will be called when dropped
+- (void) putBack
+{
+    CGRect position = [parent convertRect:shadow.frame fromView:shadow.window];
+    NSLog(@"Put back, original frame:%@, converted:%@",NSStringFromCGRect(self.frame),NSStringFromCGRect(position));
+    self.frame = position;
+    [shadow removeFromSuperview];
+    //[parent addSubview:self];
+    
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -188,10 +222,13 @@
     NSLog(@"Touch began");
     if(!dragModel){
         [self performSelector:@selector(longPressed) withObject:nil afterDelay:LONG_TOUCH];
+    }else{
+        [container setDraggableView:self];
+        [self addShadow];
     }
     UITouch* touchPoint = [touches anyObject];
     originalFrame = self.frame;
-    prevTouchPoint = [touchPoint locationInView:self.superview];
+    prevTouchPoint = [touchPoint locationInView:self.window];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -201,15 +238,19 @@
         return;
     }
     NSLog(@"Touch moved");
-    [self setScroll:self.superview enabled:NO];
+    //[self setScroll:self.superview enabled:NO];
     UITouch* touchPoint = [touches anyObject];
-    CGPoint curPos = self.frame.origin;
-    CGPoint moved = [touchPoint locationInView:self.superview];
+    CGPoint curPos = shadow.frame.origin;
+    CGPoint moved = [touchPoint locationInView:shadow.window];
     float deltaY = moved.y - prevTouchPoint.y;
+    float deltaX = moved.x - prevTouchPoint.x;
     float shiftedY = curPos.y + deltaY;
-    [self shiftContentOffset:self.superview shiftedY:shiftedY];
-    [self relocateSelf:self.superview shifted:shiftedY];
+    float shiftedX = curPos.x + deltaX;
+    //[self shiftContentOffset:self.superview shiftedY:shiftedY];
+    //[self relocateSelf:self.superview shifted:shiftedY];
+    shadow.frame = CGRectMake(shiftedX, shiftedY, shadow.frame.size.width, shadow.frame.size.height);
     prevTouchPoint = moved;
+    [container moveDetection:shadow];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
@@ -220,7 +261,9 @@
         return;
     }
     [self touchesMoved:touches withEvent:event];
-    [self setScroll:self.superview enabled:YES];
+    [self putBack];
+    [container dropView:self];
+    //[self setScroll:self.superview enabled:YES];
     
 }
 

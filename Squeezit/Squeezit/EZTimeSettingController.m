@@ -29,6 +29,91 @@
     return self;
 }
 
+- (void) scrollAnimStopped:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
+{
+    //NSLog(@"Stop get called, threadid:%i, callback: %@", (int)[NSThread currentThread], [NSThread callStackSymbols]);
+    NSLog(@"Scroll stopped, call the move detection again");
+    UIView* draggable = (__bridge UIView*)context;
+    [self moveDetection:draggable];
+}
+
+//Under following circumstance, I assume only the 
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
+{
+    
+}
+
+- (void) moveDetection:(UIView*)draggable
+{
+    UIView* grandPa = scrollView.superview;
+    CGRect dragRect = [grandPa convertRect:draggable.frame fromView:draggable.superview];
+    NSLog(@"move dragRect:%@, scrollView:%@",NSStringFromCGRect(dragRect), NSStringFromCGRect(scrollView.frame));
+    if(CGRectContainsRect(scrollView.frame, dragRect)){
+        NSLog(@"No scroll is need");
+        return;
+    }else if(dragRect.origin.y > scrollView.frame.origin.y && (dragRect.origin.y+dragRect.size.height) <  (scrollView.frame.origin.y+scrollView.frame.size.height)){
+        NSLog(@"Will scroll horizontally");
+    }else{
+        CGRect insetRect = CGRectIntersection(scrollView.frame, dragRect);
+        //deltaOY = (dragRect.origin.y - insetRect.origin.y)/;
+        CGFloat velocity = (dragRect.size.height - insetRect.size.height)/dragRect.size.height;
+        CGFloat prevOffsetY = scrollView.contentOffset.y;
+        CGFloat animDuration = SCROLL_DURATION/velocity;
+        CGFloat changeOffsetY = prevOffsetY;
+        if(dragRect.origin.y < insetRect.origin.y){//Will scroll up.
+            changeOffsetY = prevOffsetY - SCROLL_UNIT;
+            if(changeOffsetY < 0.0f){
+                changeOffsetY = 0.0f;
+            }
+        } else {
+            changeOffsetY = prevOffsetY + SCROLL_UNIT;
+            if((changeOffsetY+scrollView.frame.size.height) > scrollView.contentSize.height){
+                changeOffsetY = scrollView.contentSize.height - scrollView.frame.size.height;
+            }
+        }
+        
+        //Will start scroll animation if the scroll happened.
+        UIView* tmpView = [[UIView alloc] initWithFrame:CGRectMake(20, 20, 44,44)];
+        tmpView.backgroundColor = [UIColor redColor];
+        [self.view.window addSubview:tmpView];
+        //scrollView.delegate = self;
+        
+        if(prevOffsetY != changeOffsetY){
+            NSLog(@"AnimationDurition:%fl",animDuration);
+            [UIView beginAnimations:@"Scroll" context:(void*)draggable];
+            [UIView setAnimationDuration:animDuration];
+            [UIView setAnimationDelegate:self];
+            [UIView setAnimationDidStopSelector:@selector(scrollAnimStopped:finished:context:)];
+            scrollView.contentOffset = CGPointMake(scrollView.contentOffset.x, changeOffsetY);
+            tmpView.alpha = 0.2;
+            [UIView commitAnimations];
+        } else {
+            NSLog(@"Nothing changed, stop calling");
+        }
+        ///[scrollView setContentOffset:<#(CGPoint)#> animated:<#(BOOL)#>];
+    }
+    
+}
+
+- (void) dropView:(UIView*)droped
+{
+    NSLog(@"Will reposition view:%@",NSStringFromCGRect(droped.frame));
+    [scrollView setScrollEnabled:YES];
+}
+
+- (void) setDraggableView:(UIView*)draggable
+{
+    [scrollView setScrollEnabled:false];
+    if(activeDragableView == draggable){
+        return;
+    }
+    [activeDragableView disableDraggable];
+    activeDragableView = (DragableView*)draggable;
+    NSLog(@"setDraggableView get called");
+    
+    //activeDragableView = dragView;
+}
+
 - (void) createTimeBoxStopped:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
     //NSLog(@"Stop get called, threadid:%i, callback: %@", (int)[NSThread currentThread], [NSThread callStackSymbols]);
@@ -52,6 +137,7 @@
     [UIView setAnimationDidStopSelector:@selector(createTimeBoxStopped:finished:context:)];
     dragableView.alpha = 0.6;
     [UIView commitAnimations];
+    dragableView.container = self;
 }
 
 // Once I get touch ended event
@@ -67,6 +153,8 @@
     CGFloat touchY = touchPoint.y - PAGE_HEAD;
     int touchedTime = touchY/UNIT_HEIGHT;
     CGFloat y = PAGE_HEAD + touchedTime*UNIT_HEIGHT;
+    [activeDragableView disableDraggable];
+    activeDragableView = nil;
     [self createTimeSpanAndJump:touchedTime positionY:y];
 }
 
