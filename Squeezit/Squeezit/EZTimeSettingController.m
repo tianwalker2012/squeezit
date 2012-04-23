@@ -33,6 +33,7 @@
 //Under following circumstance, I assume only the 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
+    animated = false;
     NSLog(@"ScrollAnimation completed");
     if(shadowView){
         [self moveDetection:shadowView];
@@ -62,12 +63,12 @@
     }else if(dragRect.origin.y >= scrollView.frame.origin.y && (dragRect.origin.y+dragRect.size.height) <=  (scrollView.frame.origin.y+scrollView.frame.size.height)){
         NSLog(@"Will scroll horizontally");
     }else{
-        NSLog(@"move dragRect:%@, scrollView:%@",NSStringFromCGRect(dragRect), NSStringFromCGRect(scrollView.frame));
+        
         //deltaOY = (dragRect.origin.y - insetRect.origin.y)/;
         //Assume the 
         CGFloat velocity = (scrollView.frame.origin.y - dragRect.origin.y)/dragRect.size.height;
         CGFloat prevOffsetY = scrollView.contentOffset.y;
-        CGFloat animDuration = SCROLL_DURATION/velocity;
+        CGFloat animDuration = SCROLL_DURATION/(velocity*3);
         CGFloat changeOffsetY = prevOffsetY;
         if(velocity > 0){//Will scroll up.
             changeOffsetY = prevOffsetY - SCROLL_UNIT;
@@ -76,7 +77,7 @@
             }
         } else {
             velocity = (dragRect.origin.y+dragRect.size.height-(scrollView.frame.origin.y+scrollView.frame.size.height))/dragRect.size.height;
-            animDuration = SCROLL_DURATION/velocity;
+            animDuration = SCROLL_DURATION/(velocity*3);
             changeOffsetY = prevOffsetY + SCROLL_UNIT;
             if((changeOffsetY+scrollView.frame.size.height) > scrollView.contentSize.height){
                 changeOffsetY = scrollView.contentSize.height - scrollView.frame.size.height;
@@ -88,9 +89,10 @@
         if(prevOffsetY != changeOffsetY){
             animated = YES;
             shadowView = draggable;
+            NSLog(@"AnimationDuration:%fl, velocity:%fl",animDuration , velocity);
             if(animDuration > SCROLL_DURATION_MAX){
                 animDuration = SCROLL_DURATION_MAX;
-            }
+            } 
             NSLog(@"AnimationDurition:%fl",animDuration);
             [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x, changeOffsetY) animated:YES];
             //[self performSelector:@selector(ownScrollAnimationCompleted:) withObject:draggable afterDelay:animDuration];
@@ -110,9 +112,64 @@
     }
 }
 
+-(CGRect) normalizeFrame:(CGRect)frame
+{
+    CGRect res = frame;
+    if(res.origin.y < 0){
+        res.origin.y = 0;
+    }
+    
+    int timeSteps = (res.size.height/SCROLL_UNIT)+1;
+    if(timeSteps < 2){
+        timeSteps = 2;
+    }
+    res.size.height = timeSteps * SCROLL_UNIT;
+    int originSteps = res.origin.y/SCROLL_UNIT;
+    res.origin.y = originSteps*SCROLL_UNIT;
+    //TODO may need to add total length exceeding test. Let's check.
+    NSLog(@"Before normalize:%@, after normalize:%@",NSStringFromCGRect(frame),NSStringFromCGRect(res));
+    return res;
+}
+
+- (void) stretchBegan:(UIView*)stretched
+{
+    
+}
+
+- (void) stretchMoved:(UIView*)stretched
+{
+    
+}
+
+- (void) stretchEnded:(UIView*)stretched
+{
+    
+}
+
+- (void) stretchCancelled:(UIView*)stretched
+{
+    
+}
+
+- (void) setScrollEnabled:(BOOL)endabled
+{
+    [scrollView setScrollEnabled:endabled];
+}
+
 - (void) dropView:(UIView*)droped
 {
     NSLog(@"Will reposition view:%@",NSStringFromCGRect(droped.frame));
+    CGPoint center = droped.center;
+    CGFloat bodyArea = center.y - PAGE_HEAD;
+    int floors = bodyArea/SCROLL_UNIT;
+    if(floors == 0){
+        center.y = PAGE_HEAD;
+    }else{
+        center.y = PAGE_HEAD+ PAGE_HEAD*floors;
+    }
+    center.x = TIME_BEGIN+droped.frame.size.width/2;
+    NSLog(@"Old center:%@, new center:%@",NSStringFromCGPoint(droped.center), NSStringFromCGPoint(center));
+    droped.center = center;
     [scrollView setScrollEnabled:YES];
 }
 
@@ -139,9 +196,9 @@
 - (void) createTimeSpanAndJump:(int)touchedTime positionY:(CGFloat)y
 {
     NSLog(@"toucheTime:%d, position:%fl",touchedTime,y);
-    DragableView* dragableView = [[DragableView alloc] initWithFrame:CGRectMake(TIME_BEGIN, y, self.view.bounds.size.width-TIME_BEGIN, UNIT_HEIGHT)];
-    dragableView.backgroundColor = [UIColor colorWithRed:0.8 green:0.5 blue:0.5 alpha:1];
-    dragableView.alpha = 0.0;
+    DragableView* dragableView = [[DragableView alloc] initWithFrame:CGRectMake(TIME_BEGIN, y-TouchZone/2, self.view.bounds.size.width-TIME_BEGIN, UNIT_HEIGHT+TouchZone)];
+    dragableView.background.backgroundColor = [UIColor colorWithRed:0.8 green:0.5 blue:0.5 alpha:1];
+    //dragableView.alpha = 0.0;
     dragableView.autoresizingMask = UIViewAutoresizingFlexibleWidth; 
     [scrollView addSubview:dragableView];
     
@@ -211,6 +268,30 @@
 - (void) animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context
 {
     //NSLog(@"Stop get called, threadid:%i, callback: %@", (int)[NSThread currentThread], [NSThread callStackSymbols]);
+}
+
+- (void) scrollStep:(CGFloat)step stopDelegate:(id)delegate
+{
+    CGFloat offsetY = scrollView.contentOffset.y;
+    CGFloat offsetYUpdated = offsetY + step;
+    if(offsetYUpdated < 0){
+        offsetYUpdated = 0;
+    }else if((offsetYUpdated + scrollView.frame.size.height) > scrollView.contentSize.height){
+        offsetYUpdated = scrollView.contentSize.height - scrollView.frame.size.height;
+    }
+    NSLog(@"offsetY:%fl, offsetUpdated:%fl", offsetY, offsetYUpdated);
+    if(offsetYUpdated == offsetY){
+        NSLog(@"No animation for not changed");
+        return;
+    }
+    
+    //[UIView beginAnimations:@"Scroll" context:context];
+    //[UIView setAnimationDelegate:delegate];
+    //[UIView setAnimationDidStopSelector:method];
+    //[UIView setAnimationDuration:duration];
+    scrollView.delegate = delegate;
+    [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x, offsetYUpdated)
+                        animated:YES];   
 }
 
 - (void) buttonTapped

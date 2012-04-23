@@ -8,12 +8,23 @@
 
 #import "DragableView.h"
 #import "Constants.h"
+#import  <QuartzCore/QuartzCore.h>
 
 @interface CycleView : UIView
+{
+    id<StretchTouchHandler> stretchHandler;
+}
 
 @end
 
 @implementation CycleView
+
+- (id) initWithFrame:(CGRect)frame handler:(id<StretchTouchHandler>)handler
+{
+    self = [super initWithFrame:frame];
+    stretchHandler = handler;
+    return self;
+}
 
 - (void) drawRect:(CGRect)rect
 {
@@ -26,10 +37,40 @@
     CGContextStrokePath(context);
     NSLog(@"Draw a cycle");
 }
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [stretchHandler stretchTouchesBegan:touches withEvent:event];
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [stretchHandler stretchTouchesMoved:touches withEvent:event];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [stretchHandler stretchTouchesEnded:touches withEvent:event];
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [stretchHandler stretchTouchesCancelled:touches withEvent:event];
+}
+
 @end
 
+
+//Following is the explaination for the weired implementation
+//The purpose of the background is to make sure the StretchCycle get the right touch event.
+//The rationale behind this is, the stretch point is just 6 point in diameter, but for user to touch 
+//it effectively, it is actually 44*44 touch zone. 
+//We need to extend the parent view to hold this touch zone. 
+//I wish this explaination is clear enough for you to understand. 
+//Any question: sunnyskyunix#gmail.com
+
 @implementation DragableView
-@synthesize container;
+@synthesize container, background;
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -38,6 +79,12 @@
         // Initialization code
         animationGoing = false;
         dragModel = false;
+        stretchModel = false;
+        CGRect bkFrame = CGRectInset(frame, 0 , TouchZone/2);
+        bkFrame.origin = CGPointMake(0, TouchZone/2);
+        background = [[UIView alloc] initWithFrame:bkFrame];
+        [self addSubview:background];
+        self.backgroundColor = [UIColor colorWithRed:0.9 green:0.9 blue:0.9 alpha:0.9];
         
     }
     return self;
@@ -153,17 +200,154 @@
 
 }
 
-- (void) addStretchPoint
+- (void)stretchTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    stretchModel = true;
+    [container setScrollEnabled:NO];
+    [container stretchBegan:self];
+    UITouch* touch = (UITouch*)[touches anyObject];
+    prevStretchPoint = [touch locationInView:self.superview];
+    NSLog(@"Stretch begen, %@",NSStringFromCGPoint(prevStretchPoint));
+}
+
+//What's the responsibility
+//Now keep it simple and stupid, that is do nothing. 
+//Later the rotation fit will be done in this method
+- (void) adjustToFrame:(CGRect)frame
+{
+    [self setFrame:frame];
+    [background setFrame:CGRectMake(0, 22, frame.size.width, frame.size.height - UNIT_HEIGHT)];
+    [self adjustStretchControl];
+}
+
+-(void) topStretched:(CGPoint)curStretchPoint deltaY:(CGFloat)deltaY
+{
+    CGRect curRect = self.frame;
+    curRect.origin.y = curRect.origin.y - deltaY;
+    curRect.size.height = curRect.size.height + deltaY;
+    if(curRect.origin.y < UpLimit){
+        CGFloat compensite = curRect.origin.y - UpLimit;
+        curRect.origin.y = UpLimit;
+        curRect.size.height = curRect.size.height + compensite;
+    }
+    
+   
+    //CGRect normalized = [container normalizeFrame:curRect];
+    if(curRect.size.height < MINI_HEIGHT){
+        CGFloat originAdjust = MINI_HEIGHT - curRect.size.height;
+        curRect.origin.y = curRect.origin.y - originAdjust;
+        curRect.size.height = MINI_HEIGHT;
+    }
+    [self adjustToFrame:curRect];
+}
+
+-(void) bottomStretched:(CGPoint)curStretchPoint deltaY:(CGFloat)deltaY
+{
+    CGRect curRect = self.frame;
+    curRect.size.height = curRect.size.height - deltaY;
+    //CGRect normalized = [container normalizeFrame:curRect];
+    if(curRect.size.height < MINI_HEIGHT){
+        curRect.size.height = MINI_HEIGHT;
+    }else if(curRect.origin.y+curRect.size.height > BottomLimit){
+        //CGFloat compensite = curRect.origin.y+curRect.size.height - BottomLimit;
+        curRect.size.height = BottomLimit - curRect.origin.y;
+    }
+    [self adjustToFrame:curRect];
+}
+
+
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView;
+{
+    NSLog(@"StretchAnimationStopped, stretchModel:%@", stretchModel?@"YES":@"NO");
+    if(!stretchModel){
+        NSLog(@"Not in strechModel anymore");
+        //Recover old delegate
+        scrollView.delegate = container;
+        return;
+    }
+    CGPoint tp = [recordedStretchTouch locationInView:self.window];
+    //Keep it simple and stupid
+    if(tp.y < UpperScrollZone){
+        [self topStretched:tp deltaY:ScrollStep];
+    }else if(tp.y > BottomScrollZone){
+        [self bottomStretched:tp deltaY:-ScrollStep];
+    }
+    [self stretchScoll:recordedStretchTouch];
+    
+}
+// Brief description about the method
+// Check the StretchCycle's position if it is on the scroll region.
+// If it is and content size is scrollable, I will scroll the view accordingly. 
+- (void) stretchScoll:(UITouch*)touch
+{
+    currentStretchTouch = touch;
+    UIView* touchedView = touch.view;
+    UIWindow* window = touchedView.window;
+    CGRect winRect = [window convertRect:touchedView.frame fromView:touchedView.superview];
+    NSLog(@"Strech Rect:%@",NSStringFromCGRect(winRect));
+    if(touchedView == topCycle){
+        if(winRect.origin.y < UpperScrollZone){
+            [container scrollStep:-ScrollStep stopDelegate:self];   
+        }
+    }else{
+        if(winRect.origin.y+winRect.size.height > BottomScrollZone){
+            [container scrollStep:ScrollStep stopDelegate:self];
+        }
+    }
+}
+
+- (void)stretchTouchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    UITouch* touch = (UITouch*)[touches anyObject];
+    CGPoint curStretchPoint = [touch locationInView:self.superview];
+    CGFloat deltaY = prevStretchPoint.y - curStretchPoint.y;
+    NSLog(@"currStretchPoint:%@,previousStretchPoint:%@,deltaY:%fl",NSStringFromCGPoint(curStretchPoint),NSStringFromCGPoint(prevStretchPoint),deltaY);
+    if(touch.view == topCycle){
+        [self topStretched:curStretchPoint deltaY:deltaY];
+    }else{
+        [self bottomStretched:curStretchPoint deltaY:deltaY];
+    }
+    [self stretchScoll:touch];
+    [container stretchMoved:self];
+    prevStretchPoint = curStretchPoint;
+    recordedStretchTouch = touch; 
+    NSLog(@"Stretch moved");
+}
+
+- (void)stretchTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [container setScrollEnabled:YES];
+    //Will add normalize code here.
+    //Should we call again.
+    [container stretchEnded:self];
+    stretchModel = false;
+    NSLog(@"Stretch ended");
+}
+
+- (void)stretchTouchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [container setScrollEnabled:YES];
+    stretchModel = false;
+    NSLog(@"Stretch cancelled");
+}
+
+- (void) adjustStretchControl
+{
+    topCycle.center = CGPointMake(0.8*self.bounds.size.width, TouchZone/2);
+    bottomCycle.center = CGPointMake(0.2*self.bounds.size.width, self.bounds.size.height - TouchZone/2);
+    NSLog(@"SelfBounds:%@,topCycle:%@,bottomCycle:%@",NSStringFromCGRect(self.bounds),NSStringFromCGRect(topCycle.frame),NSStringFromCGRect(bottomCycle.frame));
+}
+
+- (void) addStretchControl
 {
     //CGRect bounds = self.bounds;
-    
-    topCycle = [[CycleView alloc] initWithFrame:CGRectMake(0, 0, DragCycleSize, DragCycleSize)];
-    bottomCycle = [[CycleView alloc] initWithFrame:CGRectMake(0, 0, DragCycleSize, DragCycleSize)];
-    topCycle.center = CGPointMake(self.bounds.origin.x+(0.8*self.bounds.size.width), self.bounds.origin.y);
-    bottomCycle.center = CGPointMake(self.bounds.origin.x+(0.2*self.bounds.size.width), self.bounds.origin.y+self.bounds.size.height);
-    topCycle.backgroundColor = [UIColor clearColor];
-    bottomCycle.backgroundColor = [UIColor clearColor];
-    NSLog(@"SelfBounds:%@,topCycle:%@,bottomCycle:%@",NSStringFromCGRect(self.bounds),NSStringFromCGRect(topCycle.frame),NSStringFromCGRect(bottomCycle.frame));
+    if(!topCycle){
+        topCycle = [[CycleView alloc] initWithFrame:CGRectMake(0, 0, DragCycleSize, DragCycleSize) handler:self];
+        bottomCycle = [[CycleView alloc] initWithFrame:CGRectMake(0, 0, DragCycleSize, DragCycleSize)handler:self];
+        topCycle.backgroundColor = [UIColor clearColor];
+        bottomCycle.backgroundColor = [UIColor clearColor];
+    }
+    [self adjustStretchControl];
     [self addSubview:topCycle];
     [self addSubview:bottomCycle];
 }
@@ -177,6 +361,18 @@
     [bottomCycle removeFromSuperview];
 }
 
+//The purpose of this method is to copy src view's look to dest UIView as a image.
+//Do I need image of not. I am not sure. Let's go ahead. 
+- (void) copyView:(UIView*)src to:(UIView*)dest
+{
+    UIGraphicsBeginImageContext(dest.bounds.size);
+    [src.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage* img = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    UIImageView* imgView = [[UIImageView alloc] initWithImage:img];
+    [dest addSubview:imgView];
+}
+
 - (void) addShadow
 {
     UIWindow* window = self.window;
@@ -185,12 +381,13 @@
     CGRect converted = [window convertRect:oldLocation fromView:parent];
     CGRect alterConverted = [parent convertRect:oldLocation toView:window];
     NSLog(@"Original:%@,Converted:%@, alterConverted:%@",NSStringFromCGRect(oldLocation),NSStringFromCGRect(converted), NSStringFromCGRect(alterConverted));
-    if(!shadow){
-        shadow = [[UIView alloc] initWithFrame:converted];
-        shadow.backgroundColor = [UIColor colorWithRed:0.6 green:0.4 blue:0.4 alpha:0.7];
-    }else{
-        shadow.frame = converted;
-    }
+    //CGRect adjusted = CGRectInset(converted, 0, -CycleStroke/2);
+    NSLog(@"oldRect:%@, converted:%@",NSStringFromCGRect(oldLocation),NSStringFromCGRect(converted));
+    
+    shadow = [[UIView alloc] initWithFrame:converted];
+    shadow.alpha = 0.7;
+    [self copyView:self to:shadow];
+    //shadow.backgroundColor = [UIColor colorWithRed:0.6 green:0.4 blue:0.4 alpha:0.7];
     //self.frame = converted;
     [self.window addSubview:shadow];
     //I guess will have some flash effect, so better prepared a image UIView first. 
@@ -202,7 +399,7 @@
     dragModel = true;
     NSLog(@"Long Pressed");
     [container setDraggableView:self];
-    [self addStretchPoint];
+    [self addStretchControl];
     [self addShadow];
 }
 
