@@ -30,6 +30,7 @@
 		187345C415381EBF00E23CD7 /* EZTimeScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345C315381EBF00E23CD7 /* EZTimeScrollView.m */; };
 		187345C7153823A400E23CD7 /* EZBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345C6153823A400E23CD7 /* EZBackgroundView.m */; };
 		187345CA1538295E00E23CD7 /* EZTimeInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 187345C91538295E00E23CD7 /* EZTimeInfo.m */; };
+		18CED8BE1545993300329D47 /* EZBlockObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 18CED8BD1545993300329D47 /* EZBlockObject.m */; };
 		18EA41FD153A9C2600CF9F6E /* EZViewUtility.m in Sources */ = {isa = PBXBuildFile; fileRef = 18EA41FC153A9C2600CF9F6E /* EZViewUtility.m */; };
 		18EA4266153B01F900CF9F6E /* Squeezit.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 18EA4265153B01F900CF9F6E /* Squeezit.bundle */; };
 		18EA4269153B022800CF9F6E /* EZGlobalLocalize.m in Sources */ = {isa = PBXBuildFile; fileRef = 18EA4268153B022800CF9F6E /* EZGlobalLocalize.m */; };
@@ -74,6 +75,8 @@
 		187345C6153823A400E23CD7 /* EZBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZBackgroundView.m; sourceTree = "<group>"; };
 		187345C81538295E00E23CD7 /* EZTimeInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZTimeInfo.h; sourceTree = "<group>"; };
 		187345C91538295E00E23CD7 /* EZTimeInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZTimeInfo.m; sourceTree = "<group>"; };
+		18CED8BC1545993300329D47 /* EZBlockObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZBlockObject.h; sourceTree = "<group>"; };
+		18CED8BD1545993300329D47 /* EZBlockObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZBlockObject.m; sourceTree = "<group>"; };
 		18EA41FB153A9C2600CF9F6E /* EZViewUtility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EZViewUtility.h; sourceTree = "<group>"; };
 		18EA41FC153A9C2600CF9F6E /* EZViewUtility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EZViewUtility.m; sourceTree = "<group>"; };
 		18EA4265153B01F900CF9F6E /* Squeezit.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = Squeezit.bundle; path = ../Squeezit.bundle; sourceTree = "<group>"; };
@@ -204,6 +207,8 @@
 				18EA41FC153A9C2600CF9F6E /* EZViewUtility.m */,
 				18EA4267153B022800CF9F6E /* EZGlobalLocalize.h */,
 				18EA4268153B022800CF9F6E /* EZGlobalLocalize.m */,
+				18CED8BC1545993300329D47 /* EZBlockObject.h */,
+				18CED8BD1545993300329D47 /* EZBlockObject.m */,
 			);
 			name = Utility;
 			sourceTree = "<group>";
@@ -314,6 +319,7 @@
 				187345CA1538295E00E23CD7 /* EZTimeInfo.m in Sources */,
 				18EA41FD153A9C2600CF9F6E /* EZViewUtility.m in Sources */,
 				18EA4269153B022800CF9F6E /* EZGlobalLocalize.m in Sources */,
+				18CED8BE1545993300329D47 /* EZBlockObject.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

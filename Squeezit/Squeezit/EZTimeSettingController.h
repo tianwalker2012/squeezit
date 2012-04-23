@@ -9,9 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "EZBackgroundView.h"
 #import "DragableView.h"
-
-//typedef void (^EZBlock)(void);
-
+#import "EZBlockObject.h"
 @class DragableView, EZBackgroundView;
 
 
@@ -22,6 +20,8 @@
     UIView* shadowView;
     EZBackgroundView* background;
     DragableView* activeDragableView;
+    EZBlock myBlock;
+    
     BOOL animated;
     
 }

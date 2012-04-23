@@ -15,6 +15,7 @@
 #import "EZViewUtility.h"
 #import "EZGlobalLocalize.h"
 
+
 @implementation EZTimeSettingController
 
 
@@ -277,8 +278,25 @@
 - (void)edit
 {
     NSLog(@"Edit get called");
+    EZBlockObject* obj = [[EZBlockObject alloc] initWithName:@"Block1"];
+    myBlock = [obj createBlock];
+    //block();
+    NSLog(@"Name is %@", obj.name);
+    obj = nil;
+    //block = nil;
+    NSLog(@"Should dealloced before this");
+    
+    /**
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancel)];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(done)];
+     **/
+}
+
+- (void) executeBlock
+{
+    myBlock();
+    myBlock = nil;
+    NSLog(@"Should have released the Object referred in the block");
 }
 
 - (void) loadView 
@@ -339,6 +357,8 @@
 {
     [super viewDidLoad];
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemEdit target:self action:@selector(edit)];
+    
+     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(executeBlock)];
 	// Do any additional setup after loading the view, typically from a nib.
     NSLog(@"Timesetting view resizing: %@",[EZViewUtility printAutoResizeMask:self.view]);
     DragableView* block1 = [[DragableView alloc] initWithFrame:CGRectMake(0, 0, 50, 50)];
