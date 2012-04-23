@@ -78,6 +78,7 @@
     if (self) {
         // Initialization code
         animationGoing = false;
+        stretchScrollAnimGoing = false;
         dragModel = false;
         stretchModel = false;
         CGRect bkFrame = CGRectInset(frame, 0 , TouchZone/2);
@@ -258,18 +259,24 @@
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView;
 {
-    NSLog(@"StretchAnimationStopped, stretchModel:%@", stretchModel?@"YES":@"NO");
+    CGPoint tp = [recordedStretchTouch locationInView:self.window];
+    NSLog(@"StretchAnimationStopped, stretchModel:%@, stretchPoint:%@", stretchModel?@"YES":@"NO",NSStringFromCGPoint(tp));
+    
+    stretchScrollAnimGoing = false;
+    
     if(!stretchModel){
         NSLog(@"Not in strechModel anymore");
         //Recover old delegate
         scrollView.delegate = container;
         return;
     }
-    CGPoint tp = [recordedStretchTouch locationInView:self.window];
+    
     //Keep it simple and stupid
-    if(tp.y < UpperScrollZone){
+    if(tp.y < UpperScrollZone + ScrollStep){
+        NSLog(@"Expansion up");
         [self topStretched:tp deltaY:ScrollStep];
-    }else if(tp.y > BottomScrollZone){
+    }else if(tp.y > BottomScrollZone - ScrollStep){
+        NSLog(@"Expansion down");
         [self bottomStretched:tp deltaY:-ScrollStep];
     }
     [self stretchScoll:recordedStretchTouch];
@@ -280,18 +287,23 @@
 // If it is and content size is scrollable, I will scroll the view accordingly. 
 - (void) stretchScoll:(UITouch*)touch
 {
+    
     currentStretchTouch = touch;
+    if(stretchScrollAnimGoing){
+        NSLog(@"Quit for animation is going");
+        return;
+    }
     UIView* touchedView = touch.view;
     UIWindow* window = touchedView.window;
     CGRect winRect = [window convertRect:touchedView.frame fromView:touchedView.superview];
-    NSLog(@"Strech Rect:%@",NSStringFromCGRect(winRect));
+    NSLog(@"StrechScroll, Stretch Rect:%@",NSStringFromCGRect(winRect));
     if(touchedView == topCycle){
         if(winRect.origin.y < UpperScrollZone){
-            [container scrollStep:-ScrollStep stopDelegate:self];   
+            stretchScrollAnimGoing = [container scrollStep:-ScrollStep stopDelegate:self];   
         }
     }else{
         if(winRect.origin.y+winRect.size.height > BottomScrollZone){
-            [container scrollStep:ScrollStep stopDelegate:self];
+            stretchScrollAnimGoing = [container scrollStep:ScrollStep stopDelegate:self];
         }
     }
 }
@@ -301,6 +313,7 @@
     UITouch* touch = (UITouch*)[touches anyObject];
     CGPoint curStretchPoint = [touch locationInView:self.superview];
     CGFloat deltaY = prevStretchPoint.y - curStretchPoint.y;
+    stretchDeltaY = deltaY;
     NSLog(@"currStretchPoint:%@,previousStretchPoint:%@,deltaY:%fl",NSStringFromCGPoint(curStretchPoint),NSStringFromCGPoint(prevStretchPoint),deltaY);
     if(touch.view == topCycle){
         [self topStretched:curStretchPoint deltaY:deltaY];
@@ -316,9 +329,30 @@
 
 - (void)stretchTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+   
+    UIView* stretchControl = recordedStretchTouch.view;
+    StretchType type;
+    if(stretchControl == topCycle){
+        if(stretchDeltaY > 0){
+            type = UpperCycleUp;
+        }else{
+            type = UpperCycleDown;
+        }
+    }else{
+        if(stretchDeltaY > 0){
+            type = BottomCycleUp;
+        }else{
+            type = BottomCycleDown;
+        }
+    }
+    CGRect centerRect = [self.superview convertRect:self.background.frame fromView:self];
+    CGRect normalizeRect = [container normalizeFrame:centerRect stretchType:type];
+    CGRect adjustedRect = CGRectInset(normalizeRect, 0, -ScrollStep);
+
+    NSLog(@"backGroundRect:%@,normalized:%@,adjustedFrame:%@,oldFrame:%@",NSStringFromCGRect(centerRect),NSStringFromCGRect(normalizeRect),NSStringFromCGRect(adjustedRect),NSStringFromCGRect(self.frame));
+    
+    [self adjustToFrame:adjustedRect];
     [container setScrollEnabled:YES];
-    //Will add normalize code here.
-    //Should we call again.
     [container stretchEnded:self];
     stretchModel = false;
     NSLog(@"Stretch ended");

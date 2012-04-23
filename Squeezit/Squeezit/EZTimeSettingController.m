@@ -112,22 +112,45 @@
     }
 }
 
--(CGRect) normalizeFrame:(CGRect)frame
+
+-(CGRect) normalizeFrame:(CGRect)frame stretchType:(StretchType)type;
 {
     CGRect res = frame;
-    if(res.origin.y < 0){
-        res.origin.y = 0;
+    switch (type) {
+        case UpperCycleUp:
+            if(true){//For a weired Xcode bug. remove the "if" block to check it. :)
+                CGFloat distance = res.origin.y - PAGE_HEAD;
+                int unitCount = distance/SCROLL_UNIT;
+                res.origin.y = PAGE_HEAD + unitCount*SCROLL_UNIT;
+                CGFloat delta = frame.origin.y - res.origin.y;
+                res.size.height = res.size.height + delta; 
+            }
+            break;
+        case UpperCycleDown:
+            if(true){
+                CGFloat distance = res.origin.y - PAGE_HEAD;
+                int unitCount = distance/SCROLL_UNIT;
+                res.origin.y = PAGE_HEAD + (unitCount+1)*SCROLL_UNIT;
+                CGFloat delta = frame.origin.y - res.origin.y;
+                res.size.height = res.size.height + delta; 
+            }
+            break;
+        case BottomCycleUp:
+            if(true){
+                int count = res.size.height/SCROLL_UNIT;
+                res.size.height = count*SCROLL_UNIT;
+            }
+            break;
+        case BottomCycleDown:
+            if(true){
+                int unitCount = res.size.height/SCROLL_UNIT;
+                res.size.height = (unitCount+1)*SCROLL_UNIT;
+            }
+            break;
+        default:
+            break;
     }
     
-    int timeSteps = (res.size.height/SCROLL_UNIT)+1;
-    if(timeSteps < 2){
-        timeSteps = 2;
-    }
-    res.size.height = timeSteps * SCROLL_UNIT;
-    int originSteps = res.origin.y/SCROLL_UNIT;
-    res.origin.y = originSteps*SCROLL_UNIT;
-    //TODO may need to add total length exceeding test. Let's check.
-    NSLog(@"Before normalize:%@, after normalize:%@",NSStringFromCGRect(frame),NSStringFromCGRect(res));
     return res;
 }
 
@@ -270,7 +293,8 @@
     //NSLog(@"Stop get called, threadid:%i, callback: %@", (int)[NSThread currentThread], [NSThread callStackSymbols]);
 }
 
-- (void) scrollStep:(CGFloat)step stopDelegate:(id)delegate
+//If we really scroll or not
+- (BOOL) scrollStep:(CGFloat)step stopDelegate:(id)delegate
 {
     CGFloat offsetY = scrollView.contentOffset.y;
     CGFloat offsetYUpdated = offsetY + step;
@@ -282,7 +306,7 @@
     NSLog(@"offsetY:%fl, offsetUpdated:%fl", offsetY, offsetYUpdated);
     if(offsetYUpdated == offsetY){
         NSLog(@"No animation for not changed");
-        return;
+        return false;
     }
     
     //[UIView beginAnimations:@"Scroll" context:context];
@@ -292,6 +316,7 @@
     scrollView.delegate = delegate;
     [scrollView setContentOffset:CGPointMake(scrollView.contentOffset.x, offsetYUpdated)
                         animated:YES];   
+    return true;
 }
 
 - (void) buttonTapped

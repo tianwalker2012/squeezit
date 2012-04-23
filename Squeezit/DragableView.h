@@ -8,6 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
+
+typedef enum {
+    UpperCycleUp,
+    UpperCycleDown,
+    BottomCycleUp,
+    BottomCycleDown
+} StretchType;
+
 @protocol DragContainer <NSObject>
 
 //Appearantly, the interface need refactor. 
@@ -31,10 +39,10 @@
 
 - (void) setScrollEnabled:(BOOL)endabled;
 
-- (void) scrollStep:(CGFloat)step stopDelegate:(id)delegate;
+- (BOOL) scrollStep:(CGFloat)step stopDelegate:(id)delegate;
 
 //Tell the dragView what will the proper frame size and position
--(CGRect) normalizeFrame:(CGRect)frame;
+-(CGRect) normalizeFrame:(CGRect)frame stretchType:(StretchType)type;
 
 @end
 
@@ -56,10 +64,12 @@
     CGRect oldLocation;
     CGPoint prevTouchPoint;
     CGPoint prevStretchPoint;
+    CGFloat stretchDeltaY;
     BOOL animationGoing;
     BOOL moveUp;
     BOOL dragModel;
     BOOL stretchModel;
+    BOOL stretchScrollAnimGoing;
     UIView* topCycle;
     UIView* bottomCycle;
     UIView* parent;
@@ -69,6 +79,7 @@
     UITouch* recordedStretchTouch;
     id<UIScrollViewDelegate>  __weak oldScrollDelegate;
     id<DragContainer, UIScrollViewDelegate> __weak container;
+    
 }
 
 - (void) disableDraggable;

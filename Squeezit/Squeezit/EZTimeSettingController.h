@@ -10,6 +10,8 @@
 #import "EZBackgroundView.h"
 #import "DragableView.h"
 
+//typedef void (^EZBlock)(void);
+
 @class DragableView, EZBackgroundView;
 
 
